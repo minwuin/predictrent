@@ -164,9 +164,6 @@ if st.session_state.get('prediction_done'):
             (target_df['전용면적'] >= area) &
             (target_df['해당층'] >= floor) &
             (target_df['노후도'] <= age) &
-            (target_df['엘리베이터'] == int(elevator)) &
-            (target_df['남향'] == int(south)) &
-            (target_df['풀옵션'] == int(full_opt)) &
             (target_df['지하철역_거리(m)'] <= subway) &
             (target_df['버스정류장_거리(m)'] <= bus) &
             (target_df['대형마트_거리(m)'] <= mart) &
@@ -175,6 +172,13 @@ if st.session_state.get('prediction_done'):
             (target_df['카페_거리(m)'] <= cafe) &
             (target_df['약국_거리(m)'] <= pharmacy)
         )
+        
+        if elevator:
+            mask = mask & (target_df['엘리베이터'] == 1)
+        if south:
+            mask = mask & (target_df['남향'] == 1)
+        if full_opt:
+            mask = mask & (target_df['풀옵션'] == 1)
 
         if not ignore_deposit:
                     mask = mask & (target_df['보증금'] <= deposit)
@@ -184,6 +188,8 @@ if st.session_state.get('prediction_done'):
     # 데이터 나누기 및 필터링
     # 이미 저장된 CSV에 int 변환 등이 되어 있으므로 바로 필터 적용 가능
     recommendations = apply_filter(df)
+    if not recommendations.empty:
+        recommendations = recommendations[recommendations['월세'] <= price]
     
     # (B) 이상치 매물: ignore_deposit=True -> 보증금 8000만원짜리도 나옴!
     outliers = apply_filter(df_outlier_all, ignore_deposit=True)
